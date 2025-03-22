@@ -1,0 +1,89 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple QR Code Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/github-fork-ribbon-css/gh-fork-ribbon.css}"/>
+    <link th:href="@{/css/styles.css}" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<header>
+    <h1>QR Code Generator</h1>
+    <a class="github-fork-ribbon fixed" href="https://github.com/nevenc/qr-code-generator"
+       data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
+</header>
+<main>
+    <h2>Generate QR Code</h2>
+    <div class="form-group">
+        <label for="type">Select Type:</label>
+        <select id="type">
+            <option value="website">Website</option>
+            <option value="tel">Direct Phone Call</option>
+            <option value="sms">Direct Text Message (SMS)</option>
+            <option value="mail">Email Message</option>
+            <option value="wifi">WiFi Password</option>
+            <option value="vcard">vCard</option>
+            <option value="text">Generic Text</option>
+        </select>
+    </div>
+    <div id="website-form" class="form-group">
+        <label for="url">URL:</label>
+        <input type="text" id="url">
+    </div>
+    <div id="tel-form" class="form-group" style="display:none;">
+        <label for="tel">Phone number:</label>
+        <input type="text" id="tel">
+    </div>
+    <div id="sms-form" class="form-group" style="display:none;">
+        <label for="smsphone">Phone number:</label>
+        <input type="text" id="smsphone">
+        <label for="smsmessage">Message:</label>
+        <input type="text" id="smsmessage">
+    </div>
+    <div id="mail-form" class="form-group" style="display:none;">
+        <label for="mail">Email address:</label>
+        <input type="text" id="mail">
+        <label for="subject">Subject:</label>
+        <input type="text" id="subject">
+        <label for="message">Message:</label>
+        <input type="text" id="message">
+    </div>
+    <div id="wifi-form" class="form-group" style="display:none;">
+        <label for="ssid">SSID:</label>
+        <input type="text" id="ssid">
+        <label for="password">Password:</label>
+        <input type="password" id="password">
+        <label for="encryption">Encryption:</label>
+        <select id="encryption">
+            <option value="WPA">WPA</option>
+            <option value="WEP">WEP</option>
+        </select>
+    </div>
+    <div id="vcard-form" class="form-group" style="display:none;">
+        <label for="name">Name:</label>
+        <input type="text" id="name">
+        <label for="email">Email:</label>
+        <input type="email" id="email">
+        <label for="phone">Phone:</label>
+        <input type="tel" id="phone">
+    </div>
+    <div id="text-form" class="form-group" style="display:none;">
+        <label for="text">Text:</label>
+        <input type="text" id="text">
+    </div>
+    <div class="form-group">
+        <button onclick="generateQRCode()">Generate QR Code</button>
+    </div>
+    <div class="qr-code" id="qr-code">
+        <img th:src="@{/images/qrcode-placeholder.png}" alt="QR Code" width="216" height="216">
+    </div>
+</main>
+<footer>
+    &copy; 2025 QR Code Generator. All rights reserved.
+</footer>
+<script th:src="@{/js/generator.js}"></script>
+</body>
+</html>
