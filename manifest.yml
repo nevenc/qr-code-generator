@@ -3,8 +3,8 @@ version: 1
 applications:
   - name: qr
     memory: 1G
-    path: target/qr-code-generator-0.0.1-SNAPSHOT.jar
+    path: target/qr-code-generator-0.0.2-SNAPSHOT.jar
     env:
-      JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 21.+ } }'
+      JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 25.+ } }'
     buildpacks:
       - java_buildpack_offline
