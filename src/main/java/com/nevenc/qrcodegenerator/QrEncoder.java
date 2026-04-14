@@ -7,6 +7,9 @@ import org.slf4j.LoggerFactory;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.util.Objects;
 
 public class QrEncoder {
@@ -88,6 +91,68 @@ public class QrEncoder {
         ImageIO.write(qrImage, "png", baos);
         byte[] imageBytes = baos.toByteArray();
         return imageBytes;
+    }
+
+    public static BufferedImage generateQrCodeBufferedImage(
+            String text, int scale, int border,
+            int lightColour, int darkColour,
+            QrCode.Ecc ecc, BufferedImage logo) throws Exception {
+
+        logger.debug("Generating QR code with logo, scale={}, border={}, ecc={}, text={}",
+                scale, border, ecc, text);
+
+        Objects.requireNonNull(text);
+        Objects.requireNonNull(logo, "logo image is required");
+
+        BufferedImage qr = generateQrCodeBufferedImage(
+                text, scale, border, lightColour, darkColour, ecc);
+
+        Graphics2D g = qr.createGraphics();
+        try {
+            g.setRenderingHint(
+                    RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setRenderingHint(
+                    RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+
+            int width = qr.getWidth();
+            int height = qr.getHeight();
+            int centerX = width / 2;
+            int centerY = height / 2;
+
+            int diameter = (int) Math.round(width * 0.22);
+            int radius = diameter / 2;
+
+            // White round cutout
+            g.setColor(new Color(lightColour));
+            g.fillOval(centerX - radius, centerY - radius, diameter, diameter);
+
+            // Logo scaled to a square inscribed in the circle
+            int logoSide = (int) Math.round(diameter / Math.sqrt(2.0));
+            int logoX = centerX - logoSide / 2;
+            int logoY = centerY - logoSide / 2;
+            g.drawImage(logo, logoX, logoY, logoSide, logoSide, null);
+        } finally {
+            g.dispose();
+        }
+
+        return qr;
+    }
+
+    public static byte[] generateQrCodeBytes(
+            String text, int scale, int border,
+            int lightColour, int darkColour,
+            QrCode.Ecc ecc, BufferedImage logo) throws Exception {
+
+        logger.debug("Generating QR code bytes with logo, scale={}, border={}, ecc={}, text={}",
+                scale, border, ecc, text);
+
+        BufferedImage qrImage = generateQrCodeBufferedImage(
+                text, scale, border, lightColour, darkColour, ecc, logo);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(qrImage, "png", baos);
+        return baos.toByteArray();
     }
 
 }
