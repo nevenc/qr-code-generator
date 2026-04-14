@@ -33,8 +33,8 @@ public final class LogoValidator {
             throw new InvalidLogoException(ERR_TOO_LARGE);
         }
         BufferedImage image;
-        try {
-            image = ImageIO.read(file.getInputStream());
+        try (var in = file.getInputStream()) {
+            image = ImageIO.read(in);
         } catch (IOException e) {
             throw new InvalidLogoException(ERR_NOT_PNG);
         }

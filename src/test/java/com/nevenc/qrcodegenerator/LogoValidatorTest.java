@@ -95,6 +95,22 @@ class LogoValidatorTest {
                 ex.getMessage());
     }
 
+    @Test
+    void rejectsUnreadableStream() {
+        MockMultipartFile broken = new MockMultipartFile(
+                "logo", "logo.png", "image/png", new byte[] { 1, 2, 3, 4 }) {
+            @Override
+            public java.io.InputStream getInputStream() throws IOException {
+                throw new IOException("simulated stream failure");
+            }
+        };
+
+        InvalidLogoException ex = assertThrows(
+                InvalidLogoException.class,
+                () -> LogoValidator.validate(broken));
+        assertEquals("Logo must be a valid PNG image", ex.getMessage());
+    }
+
     private static byte[] pngOfSize(int width, int height) throws IOException {
         BufferedImage img = new BufferedImage(
                 width, height, BufferedImage.TYPE_INT_RGB);
