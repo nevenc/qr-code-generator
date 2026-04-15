@@ -10,38 +10,81 @@ document.getElementById('type').addEventListener('change', function() {
     document.getElementById('text-form').style.display = type === 'text' ? 'block' : 'none';
 });
 
-function generateQRCode() {
-    const type = document.getElementById('type').value;
-    let qrData = '';
+const includeLogoCheckbox = document.getElementById('include-logo');
+const logoUploadRow = document.getElementById('logo-upload-row');
+const logoFileInput = document.getElementById('logo-file');
+const logoError = document.getElementById('logo-error');
 
+includeLogoCheckbox.addEventListener('change', function() {
+    logoUploadRow.hidden = !this.checked;
+    clearLogoError();
+});
+
+logoFileInput.addEventListener('change', clearLogoError);
+
+function showLogoError(message) {
+    logoError.textContent = message;
+    logoError.hidden = false;
+}
+
+function clearLogoError() {
+    logoError.textContent = '';
+    logoError.hidden = true;
+}
+
+function buildQrData() {
+    const type = document.getElementById('type').value;
     if (type === 'website') {
-        const url = document.getElementById('url').value;
-        qrData = url;
-    } else if (type == 'tel') {
-        const tel = document.getElementById('tel').value;
-        qrData = `tel:${tel}`;
-    } else if (type == 'sms') {
+        return document.getElementById('url').value;
+    } else if (type === 'tel') {
+        return `tel:${document.getElementById('tel').value}`;
+    } else if (type === 'sms') {
         const smsphone = document.getElementById('smsphone').value;
         const smsmessage = document.getElementById('smsmessage').value;
-        qrData = `sms:${smsphone};?&body=${smsmessage}`
-    } else if (type == 'mail') {
+        return `sms:${smsphone};?&body=${smsmessage}`;
+    } else if (type === 'mail') {
         const mail = document.getElementById('mail').value;
-        qrData = `mailto:${mail}?subject=${subject}&body=${message}`
+        const subject = document.getElementById('subject').value;
+        const message = document.getElementById('message').value;
+        return `mailto:${mail}?subject=${subject}&body=${message}`;
     } else if (type === 'wifi') {
         const ssid = document.getElementById('ssid').value;
         const password = document.getElementById('password').value;
         const encryption = document.getElementById('encryption').value;
-        qrData = `WIFI:S:${ssid};T:${encryption};P:${password};;`;
+        return `WIFI:S:${ssid};T:${encryption};P:${password};;`;
     } else if (type === 'vcard') {
         const name = document.getElementById('name').value;
         const email = document.getElementById('email').value;
         const phone = document.getElementById('phone').value;
-        qrData = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nEMAIL:${email}\nTEL:${phone}\nEND:VCARD`;
+        return `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nEMAIL:${email}\nTEL:${phone}\nEND:VCARD`;
     } else if (type === 'text') {
-        const text = document.getElementById('text').value;
-        qrData = text;
+        return document.getElementById('text').value;
+    }
+    return '';
+}
+
+async function generateQRCode() {
+    clearLogoError();
+    const qrData = buildQrData();
+
+    const form = new FormData();
+    form.append('text', qrData);
+    form.append('includeLogo', includeLogoCheckbox.checked ? 'true' : 'false');
+    if (includeLogoCheckbox.checked && logoFileInput.files[0]) {
+        form.append('logo', logoFileInput.files[0]);
     }
 
-    const qrCodeImg = document.getElementById('qr-code').querySelector('img');
-    qrCodeImg.src = `/qr?text=${encodeURIComponent(qrData)}`;
+    try {
+        const resp = await fetch('/qr', { method: 'POST', body: form });
+        if (!resp.ok) {
+            const msg = await resp.text();
+            showLogoError(msg || `Error: ${resp.status}`);
+            return;
+        }
+        const blob = await resp.blob();
+        const qrCodeImg = document.getElementById('qr-code').querySelector('img');
+        qrCodeImg.src = URL.createObjectURL(blob);
+    } catch (e) {
+        showLogoError(`Network error: ${e.message}`);
+    }
 }
