@@ -11,15 +11,10 @@ document.getElementById('type').addEventListener('change', function() {
 });
 
 const includeLogoCheckbox = document.getElementById('include-logo');
-const logoUploadRow = document.getElementById('logo-upload-row');
 const logoFileInput = document.getElementById('logo-file');
 const logoError = document.getElementById('logo-error');
 
-includeLogoCheckbox.addEventListener('change', function() {
-    logoUploadRow.hidden = !this.checked;
-    clearLogoError();
-});
-
+includeLogoCheckbox.addEventListener('change', clearLogoError);
 logoFileInput.addEventListener('change', clearLogoError);
 
 function showLogoError(message) {
