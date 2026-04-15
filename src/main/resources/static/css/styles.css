@@ -72,3 +72,62 @@ footer {
     position: fixed;
     bottom: 0;
 }
+details.branding {
+    background: #f7faff;
+    border: 1px solid #d6e3f5;
+    border-radius: 6px;
+    padding: 0.75em 1em;
+    text-align: left;
+}
+details.branding summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #0b5394;
+    outline: none;
+    list-style: none;
+}
+details.branding summary::before {
+    content: "\25B6";
+    display: inline-block;
+    margin-right: 0.5em;
+    font-size: 0.8em;
+    transition: transform 0.15s ease;
+}
+details.branding[open] summary::before {
+    transform: rotate(90deg);
+}
+details.branding[open] summary {
+    margin-bottom: 0.75em;
+}
+.branding-body {
+    padding-top: 0.5em;
+    border-top: 1px dashed #c9dbf2;
+}
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin-bottom: 0.75em;
+    font-size: 0.95em;
+}
+.checkbox-row input[type="checkbox"] {
+    width: auto;
+}
+.upload-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+}
+.upload-row input[type="file"] {
+    font-size: 0.9em;
+    padding: 0.4em;
+    background: #fff;
+}
+.error-text {
+    color: #c0392b;
+    font-size: 0.85em;
+    background: #fdecea;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    padding: 0.4em 0.6em;
+}
