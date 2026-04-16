@@ -80,9 +80,38 @@
             <label class="checkbox-row">
                 <input type="checkbox" id="include-logo"> Include logo in center
             </label>
-            <div id="logo-upload-row" class="upload-row">
-                <label for="logo-file">Logo PNG (optional &mdash; defaults to Spring Boot logo):</label>
-                <input type="file" id="logo-file" accept="image/png">
+            <div class="icon-grid" id="icon-grid">
+                <div class="icon-option selected" data-icon="spring" title="Spring Boot">
+                    <img th:src="@{/images/logos/spring.svg}" alt="Spring Boot">
+                </div>
+                <div class="icon-option" data-icon="globe" title="Website">
+                    <img th:src="@{/images/logos/globe.svg}" alt="Website">
+                </div>
+                <div class="icon-option" data-icon="phone" title="Phone">
+                    <img th:src="@{/images/logos/phone.svg}" alt="Phone">
+                </div>
+                <div class="icon-option" data-icon="sms" title="SMS">
+                    <img th:src="@{/images/logos/sms.svg}" alt="SMS">
+                </div>
+                <div class="icon-option" data-icon="email" title="Email">
+                    <img th:src="@{/images/logos/email.svg}" alt="Email">
+                </div>
+                <div class="icon-option" data-icon="wifi" title="WiFi">
+                    <img th:src="@{/images/logos/wifi.svg}" alt="WiFi">
+                </div>
+                <div class="icon-option" data-icon="vcard" title="vCard">
+                    <img th:src="@{/images/logos/vcard.svg}" alt="vCard">
+                </div>
+                <div class="icon-option" data-icon="text" title="Text">
+                    <img th:src="@{/images/logos/text.svg}" alt="Text">
+                </div>
+                <div class="icon-option" data-icon="custom" title="Upload custom">
+                    <span class="custom-icon">+</span>
+                </div>
+            </div>
+            <div id="logo-upload-row" class="upload-row" hidden>
+                <label for="logo-file">Upload PNG or SVG:</label>
+                <input type="file" id="logo-file" accept="image/png,image/svg+xml">
                 <div id="logo-error" class="error-text" hidden></div>
             </div>
         </div>
