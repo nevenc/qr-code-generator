@@ -131,3 +131,41 @@ details.branding[open] summary {
     border-radius: 4px;
     padding: 0.4em 0.6em;
 }
+.icon-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    margin-bottom: 0.75em;
+}
+.icon-option {
+    width: 48px;
+    height: 48px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    background: #fff;
+}
+.icon-option:hover {
+    border-color: #90caf9;
+}
+.icon-option.selected {
+    border-color: #1976d2;
+    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.25);
+}
+.icon-option img {
+    width: 32px;
+    height: 32px;
+}
+.custom-icon {
+    font-size: 1.5em;
+    font-weight: 300;
+    color: #999;
+    line-height: 1;
+}
+.icon-option:hover .custom-icon {
+    color: #1976d2;
+}
