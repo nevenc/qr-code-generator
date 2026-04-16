@@ -138,8 +138,8 @@ details.branding[open] summary {
     margin-bottom: 0.75em;
 }
 .icon-option {
-    width: 48px;
-    height: 48px;
+    width: 64px;
+    height: 64px;
     border: 2px solid #ddd;
     border-radius: 8px;
     cursor: pointer;
@@ -157,8 +157,8 @@ details.branding[open] summary {
     box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.25);
 }
 .icon-option img {
-    width: 32px;
-    height: 32px;
+    width: 44px;
+    height: 44px;
 }
 .custom-icon {
     font-size: 1.5em;
