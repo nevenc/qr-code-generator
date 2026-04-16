@@ -13,6 +13,7 @@ and optionally embeds a logo in the center of the code.
 - **Java 21** (target), built and run with the Java 25 toolchain in `.sdkmanrc`
 - **Spring Boot 4.0.2** (web, thymeleaf, actuator)
 - **Nayuki `qrcodegen` 1.8.0** for QR encoding
+- **JSVG 2.0.0** (`com.github.weisj:jsvg`) for SVG → BufferedImage rasterization
 - **Thymeleaf** + vanilla JS for the UI (no build step for the frontend)
 - **JUnit 5** + Spring MockMvc for tests (requires the `spring-boot-webmvc-test` artifact since SB4 relocated `AutoConfigureMockMvc`)
 - **Maven wrapper** (`./mvnw`) — do not rely on a globally installed Maven
@@ -25,17 +26,20 @@ src/main/java/com/nevenc/qrcodegenerator/
     HomeController.java       - redirects / to /generator, serves the template
     QrController.java         - GET /qr and POST /qr (multipart, with logo)
     QrEncoder.java            - static helpers: QR generation + logo composite
-    LogoValidator.java        - PNG / size / dimension checks for uploads
+    LogoValidator.java        - PNG + SVG validation for uploads
+    SvgRasterizer.java        - SVG InputStream → BufferedImage via JSVG
     InvalidLogoException.java - typed exception mapped to HTTP 400
 src/main/resources/
     application.properties
-    templates/generator.html  - single-page form
-    static/js/generator.js    - form handling + fetch POST to /qr
+    templates/generator.html  - single-page form with icon grid
+    static/js/generator.js    - form handling, icon selection, fetch POST to /qr
     static/css/styles.css
-    static/images/            - placeholder + optional spring-boot-logo.png
+    static/images/logos/      - 8 built-in SVG icons (spring, globe, phone, sms, email, wifi, vcard, text)
+    static/images/            - QR placeholder
 src/test/java/com/nevenc/qrcodegenerator/
     AppTest.java              - context-loads smoke test
-    LogoValidatorTest.java
+    LogoValidatorTest.java    - PNG + SVG validation tests
+    SvgRasterizerTest.java    - SVG rasterization tests
     QrEncoderTest.java
     QrControllerTest.java     - MockMvc tests for GET and POST /qr
 ```
@@ -52,10 +56,19 @@ src/test/java/com/nevenc/qrcodegenerator/
 - **Logo sizing is hard-coded.** Round white cutout at ~22% of QR width,
   logo inscribed in that circle. Not exposed as a tunable — keeps the UI
   simple and keeps us inside HIGH ECC's scannable range.
+- **SVG upload support.** `LogoValidator` accepts both `image/png` and
+  `image/svg+xml` (also `application/svg+xml`). SVGs are rasterized to
+  256×256 `BufferedImage` via `SvgRasterizer` (JSVG). PNG dimension check
+  (≤1024²) doesn't apply to SVGs since we control rasterization size.
+- **Built-in icon grid.** 8 SVG icons bundled at `static/images/logos/`. The
+  frontend shows a clickable grid; clicking one sends `defaultIcon={name}`
+  to the POST handler. The controller validates the name against a whitelist
+  (`VALID_ICONS`) to prevent path traversal, then loads and rasterizes the
+  SVG from classpath.
 - **Default logo is self-healing.** At startup `QrController` tries to load
-  `classpath:static/images/spring-boot-logo.png`. If it's missing or
-  unreadable, it generates a 128×128 green "S" placeholder in memory. Drop
-  a real PNG at that path to override.
+  `spring.svg` from the icons directory. If missing, falls back to
+  `spring-boot-logo.png`, then to a programmatic 128×128 green "S"
+  placeholder.
 - **Validation failures are typed.** `LogoValidator` throws
   `InvalidLogoException` with a user-facing message; a `@ExceptionHandler`
   on `QrController` maps it to `400 text/plain;charset=UTF-8`. The JS reads
@@ -64,10 +77,9 @@ src/test/java/com/nevenc/qrcodegenerator/
   the dimension error message is outside ISO-8859-1's printable range, so
   Spring needs the charset spelled out or it mangles the byte.
 - **Frontend uses native `<details>`** for the Branding disclosure — no JS
-  state machine for expand/collapse, and matches the existing vanilla-JS
-  style of the project. The file input is always visible inside the open
-  details element; the checkbox controls whether the logo is sent, not the
-  visibility of the picker.
+  state machine for expand/collapse. Inside: a checkbox, a clickable icon
+  grid (built-in icons + "+" for custom upload), and a file picker that
+  appears only when "+" is selected.
 
 ## Common Commands
 
