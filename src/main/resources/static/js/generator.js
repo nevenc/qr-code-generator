@@ -16,7 +16,7 @@ const logoUploadRow = document.getElementById('logo-upload-row');
 const logoFileInput = document.getElementById('logo-file');
 const logoError = document.getElementById('logo-error');
 
-let selectedIcon = 'spring';
+let selectedIcon = 'globe';
 
 // Icon grid click handler
 iconGrid.addEventListener('click', function(e) {
