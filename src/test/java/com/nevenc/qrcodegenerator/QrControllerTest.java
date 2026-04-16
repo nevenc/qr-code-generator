@@ -75,7 +75,7 @@ class QrControllerTest {
                         .param("text", "hello")
                         .param("includeLogo", "true"))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Logo must be a valid PNG image"));
+                .andExpect(content().string("Logo must be a valid PNG or SVG image"));
     }
 
     @Test
@@ -102,7 +102,7 @@ class QrControllerTest {
                         .param("text", "hello")
                         .param("includeLogo", "true"))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Logo must be a valid PNG image"));
+                .andExpect(content().string("Logo must be a valid PNG or SVG image"));
     }
 
     @Test

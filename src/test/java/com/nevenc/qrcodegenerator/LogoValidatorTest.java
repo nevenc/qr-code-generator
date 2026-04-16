@@ -54,7 +54,7 @@ class LogoValidatorTest {
         InvalidLogoException ex = assertThrows(
                 InvalidLogoException.class,
                 () -> LogoValidator.validate(file));
-        assertEquals("Logo must be a valid PNG image", ex.getMessage());
+        assertEquals("Logo must be a valid PNG or SVG image", ex.getMessage());
     }
 
     @Test
@@ -78,7 +78,7 @@ class LogoValidatorTest {
         InvalidLogoException ex = assertThrows(
                 InvalidLogoException.class,
                 () -> LogoValidator.validate(file));
-        assertEquals("Logo must be a valid PNG image", ex.getMessage());
+        assertEquals("Logo must be a valid PNG or SVG image", ex.getMessage());
     }
 
     @Test
@@ -108,7 +108,52 @@ class LogoValidatorTest {
         InvalidLogoException ex = assertThrows(
                 InvalidLogoException.class,
                 () -> LogoValidator.validate(broken));
-        assertEquals("Logo must be a valid PNG image", ex.getMessage());
+        assertEquals("Logo must be a valid PNG or SVG image", ex.getMessage());
+    }
+
+    @Test
+    void acceptsValidSvg() {
+        MockMultipartFile file = new MockMultipartFile(
+                "logo", "logo.svg", "image/svg+xml", minimalSvg());
+        BufferedImage img = LogoValidator.validate(file);
+        assertNotNull(img);
+        assertTrue(img.getWidth() > 0);
+        assertTrue(img.getHeight() > 0);
+    }
+
+    @Test
+    void acceptsSvgWithApplicationContentType() {
+        MockMultipartFile file = new MockMultipartFile(
+                "logo", "logo.svg", "application/svg+xml", minimalSvg());
+        BufferedImage img = LogoValidator.validate(file);
+        assertNotNull(img);
+    }
+
+    @Test
+    void rejectsSvgOverSizeLimit() {
+        byte[] bigSvg = new byte[(int) (1024L * 1024L + 1)];
+        MockMultipartFile file = new MockMultipartFile(
+                "logo", "logo.svg", "image/svg+xml", bigSvg);
+        InvalidLogoException ex = assertThrows(
+                InvalidLogoException.class,
+                () -> LogoValidator.validate(file));
+        assertEquals("Logo file must be 1 MB or smaller", ex.getMessage());
+    }
+
+    @Test
+    void rejectsCorruptSvg() {
+        byte[] junk = new byte[] { 1, 2, 3, 4 };
+        MockMultipartFile file = new MockMultipartFile(
+                "logo", "logo.svg", "image/svg+xml", junk);
+        InvalidLogoException ex = assertThrows(
+                InvalidLogoException.class,
+                () -> LogoValidator.validate(file));
+        assertEquals("Logo must be a valid PNG or SVG image", ex.getMessage());
+    }
+
+    private static byte[] minimalSvg() {
+        return "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><rect width=\"100\" height=\"100\" fill=\"green\"/></svg>"
+                .getBytes(java.nio.charset.StandardCharsets.UTF_8);
     }
 
     private static byte[] pngOfSize(int width, int height) throws IOException {
