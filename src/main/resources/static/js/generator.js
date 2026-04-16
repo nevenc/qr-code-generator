@@ -11,8 +11,27 @@ document.getElementById('type').addEventListener('change', function() {
 });
 
 const includeLogoCheckbox = document.getElementById('include-logo');
+const iconGrid = document.getElementById('icon-grid');
+const logoUploadRow = document.getElementById('logo-upload-row');
 const logoFileInput = document.getElementById('logo-file');
 const logoError = document.getElementById('logo-error');
+
+let selectedIcon = 'spring';
+
+// Icon grid click handler
+iconGrid.addEventListener('click', function(e) {
+    const option = e.target.closest('.icon-option');
+    if (!option) return;
+
+    // Update selection
+    iconGrid.querySelectorAll('.icon-option').forEach(el => el.classList.remove('selected'));
+    option.classList.add('selected');
+    selectedIcon = option.dataset.icon;
+
+    // Show/hide file upload
+    logoUploadRow.hidden = (selectedIcon !== 'custom');
+    clearLogoError();
+});
 
 includeLogoCheckbox.addEventListener('change', clearLogoError);
 logoFileInput.addEventListener('change', clearLogoError);
@@ -65,8 +84,14 @@ async function generateQRCode() {
     const form = new FormData();
     form.append('text', qrData);
     form.append('includeLogo', includeLogoCheckbox.checked ? 'true' : 'false');
-    if (includeLogoCheckbox.checked && logoFileInput.files[0]) {
-        form.append('logo', logoFileInput.files[0]);
+
+    if (includeLogoCheckbox.checked) {
+        if (selectedIcon === 'custom' && logoFileInput.files[0]) {
+            form.append('logo', logoFileInput.files[0]);
+        } else if (selectedIcon !== 'custom') {
+            form.append('defaultIcon', selectedIcon);
+        }
+        // If custom selected but no file, server falls back to default
     }
 
     try {
