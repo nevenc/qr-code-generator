@@ -25,6 +25,7 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Set;
 
 @RestController
 class QrController {
@@ -35,6 +36,10 @@ class QrController {
     private static final int DARK_COLOUR = 0x000000;
     private static final String DEFAULT_LOGO_PATH =
             "static/images/spring-boot-logo.png";
+    private static final Set<String> VALID_ICONS = Set.of(
+            "spring", "globe", "phone", "sms", "email", "wifi", "vcard", "text");
+    private static final String ICONS_PATH = "static/images/logos/";
+    private static final int SVG_RASTER_SIZE = 256;
 
     private final BufferedImage defaultLogo;
 
@@ -64,7 +69,8 @@ class QrController {
             @RequestParam(defaultValue = "8") int scale,
             @RequestParam(defaultValue = "1") int border,
             @RequestParam(defaultValue = "false") boolean includeLogo,
-            @RequestParam(required = false) MultipartFile logo) {
+            @RequestParam(required = false) MultipartFile logo,
+            @RequestParam(required = false) String defaultIcon) {
 
         try {
             logger.debug("POST /qr scale={} border={} includeLogo={} hasFile={} text={}",
@@ -75,10 +81,14 @@ class QrController {
             if (!includeLogo) {
                 imageBytes = QrEncoder.generateQrCodeBytes(text, scale, border);
             } else {
-                BufferedImage logoImage =
-                        (logo != null && !logo.isEmpty())
-                                ? LogoValidator.validate(logo)
-                                : defaultLogo;
+                BufferedImage logoImage;
+                if (logo != null && !logo.isEmpty()) {
+                    logoImage = LogoValidator.validate(logo);
+                } else if (defaultIcon != null && !defaultIcon.isBlank()) {
+                    logoImage = loadBuiltInIcon(defaultIcon);
+                } else {
+                    logoImage = defaultLogo;
+                }
                 imageBytes = QrEncoder.generateQrCodeBytes(
                         text, scale, border,
                         LIGHT_COLOUR, DARK_COLOUR,
@@ -110,10 +120,36 @@ class QrController {
         return new ResponseEntity<>(imageBytes, headers, HttpStatus.OK);
     }
 
+    private BufferedImage loadBuiltInIcon(String iconName) {
+        if (!VALID_ICONS.contains(iconName)) {
+            throw new InvalidLogoException("Unknown icon: " + iconName);
+        }
+        String path = ICONS_PATH + iconName + ".svg";
+        ClassPathResource resource = new ClassPathResource(path);
+        try (InputStream in = resource.getInputStream()) {
+            return SvgRasterizer.rasterize(in, SVG_RASTER_SIZE);
+        } catch (IOException e) {
+            logger.error("Failed to load built-in icon: {}", path, e);
+            throw new InvalidLogoException("Failed to load icon: " + iconName);
+        }
+    }
+
     private BufferedImage loadDefaultLogo() {
-        ClassPathResource resource = new ClassPathResource(DEFAULT_LOGO_PATH);
-        if (resource.exists()) {
-            try (InputStream in = resource.getInputStream()) {
+        // Try spring.svg first
+        ClassPathResource svgResource = new ClassPathResource(ICONS_PATH + "spring.svg");
+        if (svgResource.exists()) {
+            try (InputStream in = svgResource.getInputStream()) {
+                BufferedImage img = SvgRasterizer.rasterize(in, SVG_RASTER_SIZE);
+                logger.info("Loaded default logo from: {}", ICONS_PATH + "spring.svg");
+                return img;
+            } catch (Exception e) {
+                logger.warn("Failed to load spring.svg: {}", e.getMessage());
+            }
+        }
+        // Fall back to PNG
+        ClassPathResource pngResource = new ClassPathResource(DEFAULT_LOGO_PATH);
+        if (pngResource.exists()) {
+            try (InputStream in = pngResource.getInputStream()) {
                 BufferedImage img = ImageIO.read(in);
                 if (img != null) {
                     logger.info("Loaded default logo from classpath: {}",
@@ -130,6 +166,7 @@ class QrController {
             logger.info("No default logo at {}; using programmatic placeholder",
                     DEFAULT_LOGO_PATH);
         }
+        // Fall back to programmatic placeholder
         return generatePlaceholderLogo();
     }
 

@@ -119,6 +119,56 @@ class QrControllerTest {
                         "Logo must be 1024\u00d71024 pixels or smaller"));
     }
 
+    @Test
+    void postQrWithDefaultIconReturnsPng() throws Exception {
+        mockMvc.perform(multipart("/qr")
+                        .param("text", "hello")
+                        .param("includeLogo", "true")
+                        .param("defaultIcon", "wifi"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "image/png"));
+    }
+
+    @Test
+    void postQrRejectsInvalidIconName() throws Exception {
+        mockMvc.perform(multipart("/qr")
+                        .param("text", "hello")
+                        .param("includeLogo", "true")
+                        .param("defaultIcon", "../../etc/passwd"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Unknown icon: ../../etc/passwd"));
+    }
+
+    @Test
+    void postQrWithSvgLogoReturnsPng() throws Exception {
+        byte[] svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><rect width=\"100\" height=\"100\" fill=\"blue\"/></svg>"
+                .getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        MockMultipartFile logo = new MockMultipartFile(
+                "logo", "logo.svg", "image/svg+xml", svg);
+        mockMvc.perform(multipart("/qr")
+                        .file(logo)
+                        .param("text", "hello")
+                        .param("includeLogo", "true"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "image/png"));
+    }
+
+    @Test
+    void postQrFileUploadOverridesDefaultIcon() throws Exception {
+        byte[] svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><rect width=\"100\" height=\"100\" fill=\"red\"/></svg>"
+                .getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        MockMultipartFile logo = new MockMultipartFile(
+                "logo", "logo.svg", "image/svg+xml", svg);
+        // Both file and defaultIcon provided — file wins
+        mockMvc.perform(multipart("/qr")
+                        .file(logo)
+                        .param("text", "hello")
+                        .param("includeLogo", "true")
+                        .param("defaultIcon", "wifi"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "image/png"));
+    }
+
     private static byte[] pngOfSize(int w, int h) throws IOException {
         BufferedImage img = new BufferedImage(
                 w, h, BufferedImage.TYPE_INT_RGB);
